@@ -1,0 +1,2 @@
+创建对应数据库account,goods,order，transactiondb；
+运行对应的sql文件；

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.transaction.log.dao.TransactionLogMapper" >
+  <resultMap id="BaseResultMap" type="com.transaction.common.entity.TransactionLog" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="centre_no" property="centreNo" jdbcType="VARCHAR" />
+    <result column="count" property="count" jdbcType="TINYINT" />
+    <result column="prepare_count" property="prepareCount" jdbcType="BIT" />
+    <result column="failed_count" property="failedCount" jdbcType="BIT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, centre_no, count, prepare_count, failed_count
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from transaction_log
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from transaction_log
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.transaction.common.entity.TransactionLog" >
+    insert into transaction_log (id, centre_no, count, 
+      prepare_count, failed_count)
+    values (#{id,jdbcType=INTEGER}, #{centreNo,jdbcType=VARCHAR}, #{count,jdbcType=TINYINT}, 
+      #{prepareCount,jdbcType=BIT}, #{failedCount,jdbcType=BIT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.transaction.common.entity.TransactionLog" >
+    insert into transaction_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="centreNo != null" >
+        centre_no,
+      </if>
+      <if test="count != null" >
+        count,
+      </if>
+      <if test="prepareCount != null" >
+        prepare_count,
+      </if>
+      <if test="failedCount != null" >
+        failed_count,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="centreNo != null" >
+        #{centreNo,jdbcType=VARCHAR},
+      </if>
+      <if test="count != null" >
+        #{count,jdbcType=TINYINT},
+      </if>
+      <if test="prepareCount != null" >
+        #{prepareCount,jdbcType=BIT},
+      </if>
+      <if test="failedCount != null" >
+        #{failedCount,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.transaction.common.entity.TransactionLog" >
+    update transaction_log
+    <set >
+      <if test="centreNo != null" >
+        centre_no = #{centreNo,jdbcType=VARCHAR},
+      </if>
+      <if test="count != null" >
+        count = #{count,jdbcType=TINYINT},
+      </if>
+      <if test="prepareCount != null" >
+        prepare_count = #{prepareCount,jdbcType=BIT},
+      </if>
+      <if test="failedCount != null" >
+        failed_count = #{failedCount,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.transaction.common.entity.TransactionLog" >
+    update transaction_log
+    set centre_no = #{centreNo,jdbcType=VARCHAR},
+      count = #{count,jdbcType=TINYINT},
+      prepare_count = #{prepareCount,jdbcType=BIT},
+      failed_count = #{failedCount,jdbcType=BIT}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updatePrepareCount">
+    update transaction_log
+    set prepare_count = prepare_count - 1
+    where centre_no = #{centreNo}
+  </update>
+  <select id="getTransactionLogByCentreNo" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from transaction_log
+    where centre_no = #{centreNo}
+  </select>
+</mapper>

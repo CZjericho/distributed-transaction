@@ -1,0 +1,17 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: account
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/account
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+
+
+# 配置mybatis-plus
+mybatis:
+  mapper-locations: classpath*:sql/*Mapper.xml
+  type-aliases-package: com.transaction.common.entity

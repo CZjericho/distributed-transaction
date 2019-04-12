@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://code.alibabatech.com/schema/dubbo
+       http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+    <!-- 消费方应用名 -->
+    <dubbo:application name="consumer"/>
+
+    <!-- 注册中心服务地址 -->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"  protocol="zookeeper" />
+    <dubbo:protocol />
+
+    <dubbo:reference id="transactionLogService" interface="com.transaction.common.service.TransactionLogService"
+                     group="test" version="0.0.1"/>
+
+    <dubbo:reference id="goodsService" interface="com.transaction.common.service.GoodsService"
+                     group="test" version="0.0.1">
+        <!-- 需要进行事务操作的方法需要异步处理 -->
+        <dubbo:method name="updateCount" async="true" />
+        <dubbo:method name="updateCountNoDelay" async="true" />
+    </dubbo:reference>
+
+    <dubbo:reference id="accountService" interface="com.transaction.common.service.AccountService"
+                     group="test" version="0.0.1">
+        <dubbo:method name="updateAccount" async="true" />
+        <dubbo:method name="updateAccountNoDelay" async="true" />
+    </dubbo:reference>
+
+    <dubbo:reference id="orderService" interface="com.transaction.common.service.OrderService"
+                     group="test" version="0.0.1" async="true">
+        <dubbo:method name="addOrder" async="true" />
+        <dubbo:method name="addOrderNoDelay" async="true" />
+    </dubbo:reference>
+
+    <!-- 不检查服务提供者provider是否启动-->
+    <dubbo:consumer check="false"/>
+</beans>
