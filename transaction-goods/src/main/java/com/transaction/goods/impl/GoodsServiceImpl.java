@@ -65,7 +65,7 @@ public class GoodsServiceImpl implements GoodsService{
             try {
                 result = goodsMapper.updateByPrimaryKeySelective(goods);
                 transactionLogService.updatePrepareCount(centreNo);
-                transactionLogService.returnFailedCountException(centreNo);
+                transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
             } catch (RuntimeException e) {
                 System.out.println("---NoDelay-捕获异常 -----回滚");
                 throw new RuntimeException();
