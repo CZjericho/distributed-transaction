@@ -94,7 +94,7 @@
              try {
                  // 1.生成订单
                  result = orderMapper.insertSelective(order);
-                 // 2.日志表：减少准备操作次数:(已有一个操作预完成)
+                 // 2.日志表：减少准备操作次数:(已有一个预操作完成)
                  transactionLogService.updatePrepareCount(centreNo);
              } catch (Exception e) {
                  System.out.println("------NoDelay-------添加订单失败---↑--------------");
@@ -102,7 +102,7 @@
                  transactionLogService.updateFailedCount(centreNo);
                  throw new RuntimeException();
              }
-             //  4.预完成成功,查询失败次数,存在失败进行回滚
+             //  4.预操作成功,查询失败次数,存在失败进行回滚
              int failedCount = transactionLogService.returnFailedCountNoDelay(centreNo);
              System.out.println("NoDelay订单显示失败count:" + failedCount);
              if (failedCount == 1) {
@@ -113,7 +113,7 @@
          }
      ```
              
-3.预完成成功,查询失败次数
+3.预操作成功,查询失败次数
 操作简介：1.失败次数>0返回，2.预操作都以完成：失败次数>0返回 / 返回成功
 
      ```
