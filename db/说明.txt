@@ -1,2 +1,2 @@
-´´½¨¶ÔÓ¦Êı¾İ¿âaccount,goods,order£¬transactiondb£»
-ÔËĞĞ¶ÔÓ¦µÄsqlÎÄ¼ş£»
+åˆ›å»ºå¯¹åº”æ•°æ®åº“account,goods,orderï¼Œtransactiondbï¼›
+è¿è¡Œå¯¹åº”çš„sqlæ–‡ä»¶ï¼›
