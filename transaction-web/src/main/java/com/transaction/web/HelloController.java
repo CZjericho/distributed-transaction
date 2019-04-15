@@ -107,23 +107,29 @@ public class HelloController {
         transactionLog.setCount(3);
         transactionLog.setPrepareCount(3);
         // 第一步：生成事务日志
-        transactionLogService.addTransactionLog(transactionLog);
-        double money = goods.getGoodsMoney() * count;
-        // 第二步(账户)：业务系统操作->扣钱
-        accountService.updateAccountNoDelay(userId, money, no);
-        Order order = new Order();
-        order.setOrderNo(no);
-        order.setOrderMoney(money);
-        order.setOrderDate(new Date());
-        order.setOrderGoodsName(goods.getGoodsName());
-        order.setUserId(userId);
-        // 第二步(订单)：业务系统操作->生成订单
-        orderService.addOrderNoDelay(order);
-        // 第二步(库存)：业务系统操作->减库存
-        goodsService.updateCountNoDelay(goodId, count, no);
-        // 获取成功或者失败
-        int result = transactionLogService.returnFailedCountNoDelay(no);
-        return result==0 ? "success":"fail";
+        int result = 1;
+        try {
+            transactionLogService.addTransactionLog(transactionLog);
+            double money = goods.getGoodsMoney() * count;
+            // 第二步(账户)：业务系统操作->扣钱
+            accountService.updateAccountNoDelay(userId, money, no);
+            Order order = new Order();
+            order.setOrderNo(no);
+            order.setOrderMoney(money);
+            order.setOrderDate(new Date());
+            order.setOrderGoodsName(goods.getGoodsName());
+            order.setUserId(userId);
+            // 第二步(订单)：业务系统操作->生成订单
+            orderService.addOrderNoDelay(order);
+            // 第二步(库存)：业务系统操作->减库存
+            goodsService.updateCountNoDelay(goodId, count, no);
+            // 获取成功或者失败
+            result = transactionLogService.returnFailedCountNoDelay(no);
+        } catch (Exception e) {
+            transactionLogService.updateFailedCount(no);
+            System.out.println("--------------服务异常--> 修改失败次数.");
+        }
+        return result== 0 ? "success":"fail";
     }
 
 
