@@ -14,7 +14,7 @@
     <dubbo:protocol />
 
     <dubbo:reference id="transactionLogService" interface="com.transaction.common.service.TransactionLogService"
-                     group="test" version="0.0.1"/>
+                     group="test" version="0.0.1" timeout="6000"/>
 
     <dubbo:reference id="goodsService" interface="com.transaction.common.service.GoodsService"
                      group="test" version="0.0.1">

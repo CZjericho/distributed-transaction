@@ -17,6 +17,12 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
     @Override
     public int addTransactionLog(TransactionLog transactionLog) {
+        String centreNo = transactionLog.getCentreNo();
+        TransactionLog log = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
+        if (log != null) {
+            System.out.println("=============小老弟,多次消费了===========");
+            return 0;
+        }
         return transactionLogMapper.insertSelective(transactionLog);
     }
 
@@ -69,6 +75,15 @@ public class TransactionLogServiceImpl implements TransactionLogService {
         }
     }
 
+    /**
+     * 预完成成功,查询失败次数
+     * 操作简介：
+     * 1.失败次数>0返回.
+     * 2.预操作都以完成：失败次数>0返回 / 返回成功.
+     * @param centreNo
+     * @return
+     * @throws RuntimeException
+     */
     @Override
     public int returnFailedCountException(String centreNo) throws RuntimeException {
         System.out.println("====================查询失败个数--抛异常=========");
@@ -99,8 +114,9 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     @Override
     public int returnFailedCountNoDelay(String centreNo) {
         System.out.println("==========NoDelay==========查询失败个数");
+        TransactionLog transaction = new TransactionLog();
         while (true) {
-            TransactionLog transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
+            transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
             System.out.println("NoDelay进行查询:"+transaction);
             Integer prepareCount = transaction.getPrepareCount();
             Integer failedCount = transaction.getFailedCount();
@@ -121,8 +137,9 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     @Override
     public int returnFailedCountExceptionNoDelay(String centreNo) throws RuntimeException {
         System.out.println("=========NoDelay===========查询失败个数--抛异常=========");
+        TransactionLog transaction = new TransactionLog();
         while (true) {
-            TransactionLog transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
+            transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
             System.out.println(transaction);
             Integer prepareCount = transaction.getPrepareCount();
             Integer failedCount = transaction.getFailedCount();

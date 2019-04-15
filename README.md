@@ -57,6 +57,90 @@
                捕获异常->catch块中,抛异常(总而言之就是抛异常)
           ps:忘说了异常为:RuntimeException
      ```
+### 实现代码简介
+1.web：
 
-* [csdn](https://blog.csdn.net/qq_37751454)
+     ```
+     TransactionLog transactionLog = new TransactionLog();
+     transactionLog.setCentreNo(no);
+     transactionLog.setCount(3);
+     transactionLog.setPrepareCount(3);
+     // 第一步：生成事务日志
+     transactionLogService.addTransactionLog(transactionLog);
+     double money = goods.getGoodsMoney() * count;
+     // 第二步(账户)：业务系统操作->扣钱
+     accountService.updateAccountNoDelay(userId, money, no);
+     Order order = new Order();
+     order.setOrderNo(no);
+     order.setOrderMoney(money);
+     order.setOrderDate(new Date());
+     order.setOrderGoodsName(goods.getGoodsName());
+     order.setUserId(userId);
+     // 第二步(订单)：业务系统操作->生成订单
+     orderService.addOrderNoDelay(order);
+     // 第二步(库存)：业务系统操作->减库存
+     goodsService.updateCountNoDelay(goodId, count, no);
+
+     ```
+ 2.业务系统操作：(订单)
+ 
+     ```
+         @Override
+         @Transactional(rollbackFor = RuntimeException.class)
+         public int addOrderNoDelay(Order order) {
+             System.out.println("-------NoDelay------order--------------");
+             String centreNo = order.getOrderNo();
+             int result;
+             try {
+                 // 1.生成订单
+                 result = orderMapper.insertSelective(order);
+                 // 2.日志表：减少准备操作次数:(已有一个操作预完成)
+                 transactionLogService.updatePrepareCount(centreNo);
+             } catch (Exception e) {
+                 System.out.println("------NoDelay-------添加订单失败---↑--------------");
+                 // 3.日志表：修改失败次数(有失败次数，就可以认为所有操作预完成，并回滚)
+                 transactionLogService.updateFailedCount(centreNo);
+                 throw new RuntimeException();
+             }
+             //  4.预完成成功,查询失败次数,存在失败进行回滚
+             int failedCount = transactionLogService.returnFailedCountNoDelay(centreNo);
+             System.out.println("NoDelay订单显示失败count:" + failedCount);
+             if (failedCount == 1) {
+                 System.out.println("--NoDelay--抛出异常 -----回滚");
+                 throw new RuntimeException();
+             }
+             return result;
+         }
+     ```
+             
+3.预完成成功,查询失败次数
+操作简介：1.失败次数>0返回，2.预操作都以完成：失败次数>0返回 / 返回成功
+
+     ```
+             
+         @Override
+         public int returnFailedCountNoDelay(String centreNo) {
+             System.out.println("==========NoDelay==========查询失败个数");
+             TransactionLog transaction = new TransactionLog();
+             while (true) {
+                 transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
+                 System.out.println("NoDelay进行查询:"+transaction);
+                 Integer prepareCount = transaction.getPrepareCount();
+                 Integer failedCount = transaction.getFailedCount();
+                 // 回滚
+                 if (failedCount > 0) {
+                     return 1;
+                 }
+                 if (prepareCount <= 0){
+                     if (failedCount != 0) {
+                         return 1;
+                     }else {
+                         return 0;
+                     }
+                 }
+             }
+         }
+         
+     ```       
+* [csdn](https://blog.csdn.net/qq_37751454/article/details/89265134)
 
