@@ -31,6 +31,9 @@ public class TransactionLogServiceImpl implements TransactionLogService {
         System.out.println("修改失败数量：");
         // 修改分布式状态
         TransactionLog centre = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
+        if (centre == null) {
+            return;
+        }
         centre.setPrepareCount(0);
         centre.setFailedCount(1);
         transactionLogMapper.updateByPrimaryKeySelective(centre);

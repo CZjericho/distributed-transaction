@@ -2,6 +2,7 @@ package com.transaction.goods.dao;
 
 import com.transaction.common.entity.Goods;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface GoodsMapper {
@@ -16,4 +17,6 @@ public interface GoodsMapper {
     int updateByPrimaryKeySelective(Goods record);
 
     int updateByPrimaryKey(Goods record);
+
+    int reduceCount(@Param("id") int id, @Param("count") int count);
 }

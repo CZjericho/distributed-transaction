@@ -90,4 +90,17 @@
       create_date = #{createDate,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    select
+    <include refid="Base_Column_List" />
+    from account
+    where user_id = #{userId}
+  </select>
+
+  <update id="reduceMoney">
+    update account
+    set user_money = user_money - #{money}
+    where user_id = #{userId}
+  </update>
 </mapper>

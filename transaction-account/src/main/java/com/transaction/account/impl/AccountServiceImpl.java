@@ -72,13 +72,13 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(rollbackFor = RuntimeException.class)
     public int updateAccountNoDelay(int id, double money, String centreNo) {
         System.out.println("------NoDelay-------account--------------");
-        Account account = accountMapper.selectByPrimaryKey(id);
+        Account account = accountMapper.selectByUserId(id);
         Double userMoney = account.getUserMoney();
         if (userMoney >= money) {
             account.setUserMoney(userMoney - money);
             int result;
             try {
-                result = accountMapper.updateByPrimaryKeySelective(account);
+                result = accountMapper.reduceMoney(id, money);
                 transactionLogService.updatePrepareCount(centreNo);
             } catch (Exception e) {
                 System.out.println("------NoDelay-------账户修改失败---↑--------------");

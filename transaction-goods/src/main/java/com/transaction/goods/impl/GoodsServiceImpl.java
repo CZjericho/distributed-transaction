@@ -63,11 +63,12 @@ public class GoodsServiceImpl implements GoodsService{
             int result;
             // 直接捕获异常
             try {
-                result = goodsMapper.updateByPrimaryKeySelective(goods);
+                result = goodsMapper.reduceCount(id, count);
                 transactionLogService.updatePrepareCount(centreNo);
                 transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
             } catch (RuntimeException e) {
                 System.out.println("---NoDelay-捕获异常 -----回滚");
+                transactionLogService.updateFailedCount(centreNo);
                 throw new RuntimeException();
             }
             return result;

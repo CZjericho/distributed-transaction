@@ -79,4 +79,10 @@
       goods_count = #{goodsCount,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <update id="reduceCount">
+    update goods
+    set goods_count = goods_count - #{count}
+    where id = #{id}
+  </update>
 </mapper>
