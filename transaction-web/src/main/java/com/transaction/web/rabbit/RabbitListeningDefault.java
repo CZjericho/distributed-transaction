@@ -8,6 +8,7 @@ import com.transaction.common.service.AccountService;
 import com.transaction.common.service.GoodsService;
 import com.transaction.common.service.OrderService;
 import com.transaction.common.service.TransactionLogService;
+import com.transaction.common.util.UniqueUtil;
 import com.transaction.web.entity.CreateOrderRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,24 +54,35 @@ public class RabbitListeningDefault {
         Integer userId = request.getUserId();
         Integer goodsId = request.getGoodsId();
         Integer count = request.getCount();
-        Random random = new Random();
-        String no = String.valueOf(random.nextInt(9000) + 1000);
-        TransactionLog transactionLog = new TransactionLog();
-        transactionLog.setCentreNo(no);
-        transactionLog.setCount(3);
-        transactionLog.setPrepareCount(3);
-        transactionLogService.addTransactionLog(transactionLog);
-        Goods goods = goodsService.getGoods(goodsId);
-        double money = goods.getGoodsMoney() * count;
-        accountService.updateAccountSafe(userId, money, no);
-        Order order = new Order();
-        order.setOrderNo(no);
-        order.setOrderMoney(money);
-        order.setOrderDate(new Date());
-        order.setOrderGoodsName(goods.getGoodsName());
-        order.setUserId(userId);
-        orderService.addOrderNoDelay(order);
-        goodsService.updateCountSafe(goodsId, count, no);
+
+        String no = UniqueUtil.timeMillisAndRandom();
+        try {
+            System.out.println("---------生成log--centreNo:" + no);
+            TransactionLog transactionLog = new TransactionLog();
+            transactionLog.setCentreNo(no);
+            transactionLog.setCount(3);
+            transactionLog.setPrepareCount(3);
+            transactionLogService.addTransactionLog(transactionLog);
+        } catch (Exception e) {
+            System.out.println("--log server: No service found--");
+            return;
+        }
+        try {
+            Goods goods = goodsService.getGoods(goodsId);
+            double money = goods.getGoodsMoney() * count;
+            accountService.updateAccountSafe(userId, money, no);
+            Order order = new Order();
+            order.setOrderNo(no);
+            order.setOrderMoney(money);
+            order.setOrderDate(new Date());
+            order.setOrderGoodsName(goods.getGoodsName());
+            order.setUserId(userId);
+            orderService.addOrderNoDelay(order);
+            goodsService.updateCountSafe(goodsId, count, no);
+        } catch (Exception e) {
+            transactionLogService.updateFailedCount(no);
+            System.out.println("--业务服务异常：No service found--");
+        }
     }
 
 }
