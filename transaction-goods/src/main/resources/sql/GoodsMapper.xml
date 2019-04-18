@@ -83,6 +83,6 @@
   <update id="reduceCount">
     update goods
     set goods_count = goods_count - #{count}
-    where id = #{id}
+    where id = #{id} and goods_count >= #{count}
   </update>
 </mapper>

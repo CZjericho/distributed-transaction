@@ -7,6 +7,11 @@ import com.transaction.common.entity.Order;
  */
 public interface OrderService {
 
+    /**
+     * 存在延时
+     * @param order
+     * @return
+     */
     int addOrder(Order order);
 
     /**
@@ -15,4 +20,5 @@ public interface OrderService {
      * @return
      */
     int addOrderNoDelay(Order order);
+
 }

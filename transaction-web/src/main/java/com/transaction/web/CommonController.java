@@ -1,6 +1,5 @@
 package com.transaction.web;
 
-import com.transaction.common.entity.Account;
 import com.transaction.common.entity.Goods;
 import com.transaction.common.entity.Order;
 import com.transaction.common.entity.TransactionLog;
@@ -11,7 +10,6 @@ import com.transaction.common.service.TransactionLogService;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,18 +17,16 @@ import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-
 /**
- * <p>
- *  前端控制器
- * </p>
+ * 分布式事务-1.初始实现
  *
- * @author xhga
- * @since 2019-04-03
+ * 存在问题:并发支持特别差
+ * Created by HuaWeiBo on 2019/4/18.
  */
 @RestController
-@RequestMapping("/hello")
-public class HelloController {
+@RequestMapping("/common")
+public class CommonController {
+
     @Autowired
     private AccountService accountService;
     @Autowired
@@ -39,12 +35,6 @@ public class HelloController {
     private OrderService orderService;
     @Autowired
     private TransactionLogService transactionLogService;
-    @RequestMapping(value = "/test", method = RequestMethod.POST, produces = "text/html;charset=UTF-8")
-    @ResponseBody
-    public String test(){
-        return "test";
-    }
-
     /**
      * 分布式事务实现、有延时
      * (延时指的: transactionLogService.returnFailedCount()方法 )
@@ -114,8 +104,8 @@ public class HelloController {
     @RequestMapping("/distributedNoDelay")
     @ResponseBody
     public String distributedTransactionNoDelay(@Param("userId") int userId,
-                                         @Param("goodsId") int goodsId,
-                                         @Param("count") int count) {
+                                                @Param("goodsId") int goodsId,
+                                                @Param("count") int count) {
         System.out.println("分布式事务实现NoDelay：");
         Random random = new Random();
         // 订单no,用做事务日志记录标识
@@ -167,6 +157,7 @@ public class HelloController {
      * @param userId
      * @param goodsId
      * @param count
+     * @param number 并发量
      * @return
      */
     @RequestMapping("/testDistributedNoDelay")
@@ -206,52 +197,4 @@ public class HelloController {
         }
         return "悲伤.";
     }
-
-
-
-
-    /**
-     * 测试rpc服务
-     * @return
-     */
-    @RequestMapping("/testLog")
-    @ResponseBody
-    public String testLog(){
-        TransactionLog transactionLog = new TransactionLog();
-        transactionLog.setCentreNo("test");
-        transactionLog.setPrepareCount(2);
-        transactionLog.setCount(2);
-        transactionLog.setFailedCount(1);
-        int i = transactionLogService.addTransactionLog(transactionLog);
-        return "操作:" + i;
-    }
-
-    @RequestMapping("/testAccount")
-    @ResponseBody
-    public String testAccount(){
-        Account account = accountService.getAccount(1);
-        return "账户详情:" + account == null ? null : account.toString();
-    }
-
-    @RequestMapping("/testGoods")
-    @ResponseBody
-    public String testGoods(){
-        Goods goods = goodsService.getGoods(1);
-        System.out.println(goods);
-        return "商品详情:" + goods == null ? null : goods.toString();
-    }
-
-    @RequestMapping("/testOrder")
-    @ResponseBody
-    public String testOrder(){
-        Order order = new Order();
-        order.setOrderDate(new Date());
-        order.setOrderMoney(1.1);
-        // 异步返回0
-        orderService.addOrder(order);
-        return "ok";
-
-    }
-
-
 }

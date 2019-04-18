@@ -19,20 +19,22 @@
     </dubbo:reference>
 
     <dubbo:reference id="goodsService" interface="com.transaction.common.service.GoodsService"
-                     group="test" version="0.0.1">
+                     group="test" version="0.0.1" timeout="2000">
         <!-- 需要进行事务操作的方法需要异步处理 -->
         <dubbo:method name="updateCount" async="true" />
         <dubbo:method name="updateCountNoDelay" async="true" />
+        <dubbo:method name="updateCountSafe" async="true" />
     </dubbo:reference>
 
     <dubbo:reference id="accountService" interface="com.transaction.common.service.AccountService"
-                     group="test" version="0.0.1">
+                     group="test" version="0.0.1" timeout="2000">
         <dubbo:method name="updateAccount" async="true" />
         <dubbo:method name="updateAccountNoDelay" async="true" />
+        <dubbo:method name="updateAccountSafe" async="true" />
     </dubbo:reference>
 
     <dubbo:reference id="orderService" interface="com.transaction.common.service.OrderService"
-                     group="test" version="0.0.1" async="true">
+                     group="test" version="0.0.1" timeout="2000">
         <dubbo:method name="addOrder" async="true" />
         <dubbo:method name="addOrderNoDelay" async="true" />
     </dubbo:reference>

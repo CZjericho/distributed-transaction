@@ -18,5 +18,16 @@ public interface GoodsService {
      */
     int updateCountNoDelay(int id, int count, String centreNo);
 
+
+    /**
+     * 保证库存为正( >0 )
+     *
+     * @param id
+     * @param count
+     * @param centreNo
+     * @return
+     */
+    int updateCountSafe(int id, int count, String centreNo);
+
     Goods getGoods(int id);
 }

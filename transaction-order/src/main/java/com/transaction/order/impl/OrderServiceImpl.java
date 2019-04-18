@@ -47,30 +47,25 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public int addOrderNoDelay(Order order) {
-        System.out.println("-------NoDelay------order--------------");
         String centreNo = order.getOrderNo();
+        System.out.println(centreNo + "--NoDelay--order-begin:");
         int result;
         try {
             result = orderMapper.insertSelective(order);
             // 日志表：减少准备操作次数:(已有一个操作预完成)
             transactionLogService.updatePrepareCount(centreNo);
+            transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
         } catch (Exception e) {
-            System.out.println("------NoDelay-------添加订单失败---↑--------------");
+            System.out.println(centreNo + "--NoDelay--添加失败;");
             // 日志表：修改失败次数(有失败次数，就可以认为所有操作预完成，并回滚)
             transactionLogService.updateFailedCount(centreNo);
             throw new RuntimeException();
         }
-        // 预完成成功,查询失败次数,存在失败进行回滚
-        int failedCount = transactionLogService.returnFailedCountNoDelay(centreNo);
-        System.out.println("NoDelay订单显示失败count:" + failedCount);
-        if (failedCount == 1) {
-            System.out.println("--NoDelay--抛出异常 -----回滚");
-            throw new RuntimeException();
-        }
+        System.out.println(centreNo + "--NoDelay--添加成功end.");
         return result;
     }
+
 }

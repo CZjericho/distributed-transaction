@@ -18,6 +18,16 @@ public interface AccountService {
      */
     int updateAccountNoDelay(int id, double money, String centreNo);
 
+
+    /**
+     * 保证余额为正( >0 )
+     * @param id
+     * @param money
+     * @param centreNo
+     * @return
+     */
+    int updateAccountSafe(int id, double money, String centreNo);
+
     Account getAccount(int id);
 
 }

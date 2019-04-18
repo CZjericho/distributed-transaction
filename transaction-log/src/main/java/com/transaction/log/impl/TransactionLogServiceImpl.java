@@ -91,11 +91,11 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     public int returnFailedCountException(String centreNo) throws RuntimeException {
         System.out.println("====================查询失败个数--抛异常=========");
         while (true) {
-            try {
+            /*try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
             TransactionLog transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
             System.out.println(transaction);
             Integer prepareCount = transaction.getPrepareCount();
@@ -143,7 +143,7 @@ public class TransactionLogServiceImpl implements TransactionLogService {
         TransactionLog transaction = new TransactionLog();
         while (true) {
             transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);
-            System.out.println(transaction);
+            System.out.println("NoDelay进行查询:"+transaction);
             Integer prepareCount = transaction.getPrepareCount();
             Integer failedCount = transaction.getFailedCount();
             // 回滚

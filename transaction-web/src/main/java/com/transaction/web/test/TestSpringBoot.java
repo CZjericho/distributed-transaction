@@ -1,9 +1,11 @@
-package com.transaction.web;
+package com.transaction.web.test;
 
 import com.transaction.common.service.AccountService;
 import com.transaction.common.service.GoodsService;
 import com.transaction.common.service.OrderService;
 import com.transaction.common.service.TransactionLogService;
+import com.transaction.web.rabbit.RabbitSend;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,4 +26,10 @@ public class TestSpringBoot {
     @Autowired
     private TransactionLogService transactionLogService;
 
+    @Autowired
+    RabbitSend rabbitSend;
+    @Test
+    public void testSend(){
+        rabbitSend.sendMessage("hwb");
+    }
 }

@@ -78,6 +78,41 @@ public class GoodsServiceImpl implements GoodsService{
         throw new RuntimeException();
     }
 
+    /**
+     * 保证库存为正( >0 )
+     * 1.更新库存: 成功/失败
+     * 1.1 成功 (继续)
+     * 1.2 失败 (修改事务日志失败次数,抛异常)
+     * 2.try-catch(任意失败认定失败,1.2操作)
+     * 2.1事务日志准备次数-1
+     * 2.2获取失败次数(失败:抛异常, 成功:0)
+     * @param id
+     * @param count
+     * @param centreNo
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
+    public int updateCountSafe(int id, int count, String centreNo) {
+        System.out.println(centreNo + "--Safe--goods-begin:");
+        int result = goodsMapper.reduceCount(id, count);
+        if (result == 0) {
+            System.out.println(centreNo + "--Safe--库存不足;");
+            transactionLogService.updateFailedCount(centreNo);
+            throw new RuntimeException();
+        }
+        try {
+            transactionLogService.updatePrepareCount(centreNo);
+            transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
+        } catch (RuntimeException e) {
+            System.out.println(centreNo + "--Safe--操作失败;");
+            transactionLogService.updateFailedCount(centreNo);
+            throw new RuntimeException();
+        }
+        System.out.println(centreNo + "--Safe--操作成功end.");
+        return result;
+    }
+
     @Override
     public Goods getGoods(int id) {
         return goodsMapper.selectByPrimaryKey(id);

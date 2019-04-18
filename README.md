@@ -57,7 +57,7 @@
                捕获异常->catch块中,抛异常(总而言之就是抛异常)
           ps:忘说了异常为:RuntimeException
      ```
-### 实现代码简介
+### 实现代码简介(并发特别差)
 1.web：
 
      ```
@@ -142,5 +142,103 @@
          }
          
      ```       
+### 实现代码简介(mq实现并发访问接口)
+1.web
+```
+    Producer :
+        @RequestMapping("/sendCreateOrder")
+        @ResponseBody
+        public String sendCreateOrder(@Param("userId") int userId,
+                                      @Param("goodsId") int goodsId,
+                                      @Param("count") int count) {
+            // 可以先判断库存,余额,生成centreNo
+            CreateOrderRequest request = new CreateOrderRequest(userId, goodsId, count);
+            String jsonString = JSONObject.toJSONString(request);
+            // 发送创建订单请求
+            rabbitSend.sendMessage(jsonString);
+            return "还是不开心.";
+        }
+```
+```
+    Consumer :
+        @RabbitHandler
+        public void process(String content) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String format = sdf.format(new Date());
+            logger.info("实时消息：" + content + "时间:" + format);
+            CreateOrderRequest request = JSONObject.parseObject(content, CreateOrderRequest.class);
+            Integer userId = request.getUserId();
+            Integer goodsId = request.getGoodsId();
+            Integer count = request.getCount();
+            Random random = new Random();
+            String no = String.valueOf(random.nextInt(9000) + 1000);
+            TransactionLog transactionLog = new TransactionLog();
+            transactionLog.setCentreNo(no);
+            transactionLog.setCount(3);
+            transactionLog.setPrepareCount(3);
+            transactionLogService.addTransactionLog(transactionLog);
+            Goods goods = goodsService.getGoods(goodsId);
+            double money = goods.getGoodsMoney() * count;
+            accountService.updateAccountSafe(userId, money, no);
+            Order order = new Order();
+            order.setOrderNo(no);
+            order.setOrderMoney(money);
+            order.setOrderDate(new Date());
+            order.setOrderGoodsName(goods.getGoodsName());
+            order.setUserId(userId);
+            orderService.addOrderNoDelay(order);
+            goodsService.updateCountSafe(goodsId, count, no);
+        }
+```
+2.业务系统操作：(库存)
+```
+    /**
+     * 保证库存为正( >0 )
+     * 1.更新库存: 成功/失败
+     * 1.1 成功 (继续)
+     * 1.2 失败 (修改事务日志失败次数,抛异常)
+     * 2.try-catch(任意失败认定失败,1.2操作)
+     * 2.1事务日志准备次数-1
+     * 2.2获取失败次数(失败:抛异常, 成功:0)
+     * @param id
+     * @param count
+     * @param centreNo
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
+    public int updateCountSafe(int id, int count, String centreNo) {
+        System.out.println(centreNo + "--Safe--goods-begin:");
+        int result = goodsMapper.reduceCount(id, count);
+        if (result == 0) {
+            System.out.println(centreNo + "--Safe--库存不足;");
+            transactionLogService.updateFailedCount(centreNo);
+            throw new RuntimeException();
+        }
+        try {
+            transactionLogService.updatePrepareCount(centreNo);
+            transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
+        } catch (RuntimeException e) {
+            System.out.println(centreNo + "--Safe--操作失败;");
+            transactionLogService.updateFailedCount(centreNo);
+            throw new RuntimeException();
+        }
+        System.out.println(centreNo + "--Safe--操作成功end.");
+        return result;
+    }
+```
+### api说明：
+   ```
+   xxx: 获取操作失败次数时(returnFailedCount),while循环中有线程线程等待时间(500ms)
+   xxxNoDelay:取消上述的等待时间
+   xxxSafe:并发使用的接口,确保(余额,库存)不能为负.
+   
+   ```
+### 更新日志：
+2019-4-18: 添加rabbitMq,实现并发访问
+### 目前发现存在的问题：
+2019-4-18: 接口访问过慢,如1000并发,需要1分钟以上
 * [csdn](https://blog.csdn.net/qq_37751454/article/details/89265134)
+
+  
 
