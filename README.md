@@ -59,8 +59,7 @@
      ```
 ### 实现代码简介1.0(并发特别差)
    1.web：
-    
-         ```
+   
          TransactionLog transactionLog = new TransactionLog();
          transactionLog.setCentreNo(no);
          transactionLog.setCount(3);
@@ -81,10 +80,8 @@
          // 第二步(库存)：业务系统操作->减库存
          goodsService.updateCountNoDelay(goodId, count, no);
     
-         ```
    2.业务系统操作：(订单)
      
-         ```
              @Override
              @Transactional(rollbackFor = RuntimeException.class)
              public int addOrderNoDelay(Order order) {
@@ -111,13 +108,10 @@
                  }
                  return result;
              }
-         ```
                  
    3.预操作成功,查询失败次数
     操作简介：1.失败次数>0返回，2.预操作都以完成：失败次数>0返回 / 返回成功
-    
-         ```
-                 
+          
              @Override
              public int returnFailedCountNoDelay(String centreNo) {
                  System.out.println("==========NoDelay==========查询失败个数");
@@ -140,93 +134,93 @@
                      }
                  }
              }
-             
-         ```       
+         
 ### 实现代码简介2.0(mq实现并发访问接口)
    1.web
-        ```
-            Producer :
-                @RequestMapping("/sendCreateOrder")
-                @ResponseBody
-                public String sendCreateOrder(@Param("userId") int userId,
-                                              @Param("goodsId") int goodsId,
-                                              @Param("count") int count) {
-                    // 可以先判断库存,余额,生成centreNo
-                    CreateOrderRequest request = new CreateOrderRequest(userId, goodsId, count);
-                    String jsonString = JSONObject.toJSONString(request);
-                    // 发送创建订单请求
-                    rabbitSend.sendMessage(jsonString);
-                    return "还是不开心.";
-                }
-        ```
-        ```
-            Consumer :
-                @RabbitHandler
-                public void process(String content) {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                    String format = sdf.format(new Date());
-                    logger.info("实时消息：" + content + "时间:" + format);
-                    CreateOrderRequest request = JSONObject.parseObject(content, CreateOrderRequest.class);
-                    Integer userId = request.getUserId();
-                    Integer goodsId = request.getGoodsId();
-                    Integer count = request.getCount();
-                    Random random = new Random();
-                    String no = String.valueOf(random.nextInt(9000) + 1000);
-                    TransactionLog transactionLog = new TransactionLog();
-                    transactionLog.setCentreNo(no);
-                    transactionLog.setCount(3);
-                    transactionLog.setPrepareCount(3);
-                    transactionLogService.addTransactionLog(transactionLog);
-                    Goods goods = goodsService.getGoods(goodsId);
-                    double money = goods.getGoodsMoney() * count;
-                    accountService.updateAccountSafe(userId, money, no);
-                    Order order = new Order();
-                    order.setOrderNo(no);
-                    order.setOrderMoney(money);
-                    order.setOrderDate(new Date());
-                    order.setOrderGoodsName(goods.getGoodsName());
-                    order.setUserId(userId);
-                    orderService.addOrderNoDelay(order);
-                    goodsService.updateCountSafe(goodsId, count, no);
-                }
-        ```
-   2.业务系统操作：(库存)
-        ```
-            /**
-             * 保证库存为正( >0 )
-             * 1.更新库存: 成功/失败
-             * 1.1 成功 (继续)
-             * 1.2 失败 (修改事务日志失败次数,抛异常)
-             * 2.try-catch(任意失败认定失败,1.2操作)
-             * 2.1事务日志准备次数-1
-             * 2.2获取失败次数(失败:抛异常, 成功:0)
-             * @param id
-             * @param count
-             * @param centreNo
-             * @return
-             */
-            @Transactional(rollbackFor = RuntimeException.class)
-            @Override
-            public int updateCountSafe(int id, int count, String centreNo) {
-                System.out.println(centreNo + "--Safe--goods-begin:");
-                int result = goodsMapper.reduceCount(id, count);
-                if (result == 0) {
-                    System.out.println(centreNo + "--Safe--库存不足;");
-                    transactionLogService.updateFailedCount(centreNo);
-                    throw new RuntimeException();
-                }
-                try {
-                    transactionLogService.updatePrepareCount(centreNo);
-                    transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
-                } catch (RuntimeException e) {
-                    System.out.println(centreNo + "--Safe--操作失败;");
-                    transactionLogService.updateFailedCount(centreNo);
-                    throw new RuntimeException();
-                }
-                System.out.println(centreNo + "--Safe--操作成功end.");
-                return result;
+   
+      生产Producer :
+        
+            @RequestMapping("/sendCreateOrder")
+            @ResponseBody
+            public String sendCreateOrder(@Param("userId") int userId,
+                                          @Param("goodsId") int goodsId,
+                                          @Param("count") int count) {
+                // 可以先判断库存,余额,生成centreNo
+                CreateOrderRequest request = new CreateOrderRequest(userId, goodsId, count);
+                String jsonString = JSONObject.toJSONString(request);
+                // 发送创建订单请求
+                rabbitSend.sendMessage(jsonString);
+                return "还是不开心.";
             }
-        ```
+        
+      消费Consumer : 
+        
+            @RabbitHandler
+            public void process(String content) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String format = sdf.format(new Date());
+                logger.info("实时消息：" + content + "时间:" + format);
+                CreateOrderRequest request = JSONObject.parseObject(content, CreateOrderRequest.class);
+                Integer userId = request.getUserId();
+                Integer goodsId = request.getGoodsId();
+                Integer count = request.getCount();
+                Random random = new Random();
+                String no = String.valueOf(random.nextInt(9000) + 1000);
+                TransactionLog transactionLog = new TransactionLog();
+                transactionLog.setCentreNo(no);
+                transactionLog.setCount(3);
+                transactionLog.setPrepareCount(3);
+                transactionLogService.addTransactionLog(transactionLog);
+                Goods goods = goodsService.getGoods(goodsId);
+                double money = goods.getGoodsMoney() * count;
+                accountService.updateAccountSafe(userId, money, no);
+                Order order = new Order();
+                order.setOrderNo(no);
+                order.setOrderMoney(money);
+                order.setOrderDate(new Date());
+                order.setOrderGoodsName(goods.getGoodsName());
+                order.setUserId(userId);
+                orderService.addOrderNoDelay(order);
+                goodsService.updateCountSafe(goodsId, count, no);
+            }
+        
+   2.业务系统操作：(库存)
+   
+        /**
+         * 保证库存为正( >0 )
+         * 1.更新库存: 成功/失败
+         * 1.1 成功 (继续)
+         * 1.2 失败 (修改事务日志失败次数,抛异常)
+         * 2.try-catch(任意失败认定失败,1.2操作)
+         * 2.1事务日志准备次数-1
+         * 2.2获取失败次数(失败:抛异常, 成功:0)
+         * @param id
+         * @param count
+         * @param centreNo
+         * @return
+         */
+        @Transactional(rollbackFor = RuntimeException.class)
+        @Override
+        public int updateCountSafe(int id, int count, String centreNo) {
+            System.out.println(centreNo + "--Safe--goods-begin:");
+            int result = goodsMapper.reduceCount(id, count);
+            if (result == 0) {
+                System.out.println(centreNo + "--Safe--库存不足;");
+                transactionLogService.updateFailedCount(centreNo);
+                throw new RuntimeException();
+            }
+            try {
+                transactionLogService.updatePrepareCount(centreNo);
+                transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
+            } catch (RuntimeException e) {
+                System.out.println(centreNo + "--Safe--操作失败;");
+                transactionLogService.updateFailedCount(centreNo);
+                throw new RuntimeException();
+            }
+            System.out.println(centreNo + "--Safe--操作成功end.");
+            return result;
+        }
+  
 ### Api说明：
 
        xxx: 获取操作失败次数时(returnFailedCount),while循环中有线程线程等待时间(500ms)
