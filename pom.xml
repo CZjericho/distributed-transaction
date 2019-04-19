@@ -86,13 +86,19 @@
 			<artifactId>spring-boot-test</artifactId>
 		</dependency>
 
-		<!--rabbit mq-->
+		<!-- rabbit mq-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-amqp</artifactId>
 			<version>1.5.2.RELEASE</version>
 		</dependency>
 
+		<!-- redis -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+			<version>2.1.4.RELEASE</version>
+		</dependency>
 	</dependencies>
 
 	<build>

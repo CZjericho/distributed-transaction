@@ -4,6 +4,8 @@ import com.transaction.common.entity.Goods;
 import com.transaction.common.service.GoodsService;
 import com.transaction.common.service.TransactionLogService;
 import com.transaction.goods.dao.GoodsMapper;
+import com.transaction.goods.redis.RedisApi;
+import com.transaction.goods.redis.RedisConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("goodsService")
 public class GoodsServiceImpl implements GoodsService{
+
     @Autowired
     private GoodsMapper goodsMapper;
+
     @Autowired
     private TransactionLogService transactionLogService;
+
+    @Autowired
+    private RedisApi redisApi;
 
     /**
      * 更新库存
@@ -99,6 +106,7 @@ public class GoodsServiceImpl implements GoodsService{
         if (result == 0) {
             System.out.println(centreNo + "--Safe--库存不足;");
             transactionLogService.updateFailedCount(centreNo);
+            redisApi.increase(RedisConfig.GOODS_COUNT + id, count);
             throw new RuntimeException();
         }
         try {
@@ -107,6 +115,7 @@ public class GoodsServiceImpl implements GoodsService{
         } catch (RuntimeException e) {
             System.out.println(centreNo + "--Safe--操作失败;");
             transactionLogService.updateFailedCount(centreNo);
+            redisApi.increase(RedisConfig.GOODS_COUNT + id, count);
             throw new RuntimeException();
         }
         System.out.println(centreNo + "--Safe--操作成功end.");

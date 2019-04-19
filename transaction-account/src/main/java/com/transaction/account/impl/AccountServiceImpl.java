@@ -120,7 +120,7 @@ public class AccountServiceImpl implements AccountService {
             transactionLogService.updatePrepareCount(centreNo);
             transactionLogService.returnFailedCountExceptionNoDelay(centreNo);
         } catch (Exception e) {
-            System.out.println(centreNo + "--Safe-操作失败;");
+            System.out.println(centreNo + "--Safe--操作失败;");
             transactionLogService.updateFailedCount(centreNo);
             throw new RuntimeException();
         }

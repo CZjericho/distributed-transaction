@@ -139,7 +139,6 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
     @Override
     public int returnFailedCountExceptionNoDelay(String centreNo) throws RuntimeException {
-        System.out.println("=========NoDelay===========查询失败个数--抛异常=========");
         TransactionLog transaction = new TransactionLog();
         while (true) {
             transaction = transactionLogMapper.getTransactionLogByCentreNo(centreNo);

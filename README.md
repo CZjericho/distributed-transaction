@@ -220,6 +220,35 @@
             System.out.println(centreNo + "--Safe--操作成功end.");
             return result;
         }
+### 实现代码简介3.0(redis缓存库存,用于拒绝多余的请求访问)
+   1.web
+   
+       /**
+        * 通过redis验证库存,
+        * 不足直接拒绝
+        * @param userId
+        * @param goodsId
+        * @param count
+        * @return
+        */
+       @RequestMapping("/redisCreateOrder")
+       @ResponseBody
+       public String redisCreateOrder(@Param("userId") int userId,
+                                      @Param("goodsId") int goodsId,
+                                      @Param("count") int count) {
+           // 减去所购买的商品数量
+           int decrement = redisApi.decrement(RedisConfig.GOODS_COUNT + goodsId, count);
+           if (decrement < 0) {
+               // 设置库存为0(为了创建订单失败时, 将库存重新加入缓存)
+               redisApi.add(RedisConfig.GOODS_COUNT + goodsId, 0);
+               return "库存不足..";
+           }
+           CreateOrderRequest request = new CreateOrderRequest(userId, goodsId, count);
+           String jsonString = JSONObject.toJSONString(request);
+           // 发送创建订单请求
+           rabbitSend.sendMessage(jsonString);
+           return "有点开心..";
+       }
   
 ### Api说明：
 
@@ -232,12 +261,45 @@
 ### 更新日志：
     
        2019-4-18: 添加rabbitMq,实现并发访问
+       2019-4-19: 添加redis缓存,拒绝多余请求
      
 ### 存在问题：
 
-       2019-4-18: 接口访问过慢,如1000并发,需要1分钟以上
+       2019-4-18: 接口访问过慢,如1000并发,需要1分钟以上(每个创建订单100ms左右吧,没有具体测试)
+       2019-4-19：每个模块配置了redis代码,能否写在公共模块(如何放在公共模块web加载不了bean,goods等服务提供模块没问题)
 
-* [csdn](https://blog.csdn.net/qq_37751454/article/details/89265134)
+* [csdn博客:](https://blog.csdn.net/qq_37751454/article/details/89265134)
 
+```
+|—transaction-xxx (账户,商品,订单)
+|  |
+|  |-dao
+|  |-impl
+|  |-redis 缓存操作(商品)
+|  |-README.md
+|
+|—transaction-common 公共模块
+|  |
+|  |-entity  实体类
+|  |-service api接口
+|  |-util    公共类
+|  |-README.md
+|
+|—transaction-log  日志中心
+|  |
+|  |-dao
+|  |-impl
+|  |-README.md
+|
+|—transaction-web web层
+|  |
+|  |-entity 类
+|  |-rabbit rabbit操作
+|  |-redis  redis操作
+|  |-test   rest类
+|  |-xxxController.java
+|  |-README.md
+|
+```
   
 
