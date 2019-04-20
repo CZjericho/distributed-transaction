@@ -1,17 +1,17 @@
 # 实现分布式事务
-框架:SpringBoot+mybatis+dubbo+zk+mysql
+框架:SpringBoot+mybatis+dubbo+zk+mysql(+rabbit+redis)
   ```
      表结构在项目中db目录
       
      transaction-log,account,order,goods 
   ```
   
-```
-   操作简介:
+  ```
+    实现说明:
    
-   采用log日志(transaction-log)来记录业务系统(account,order,goods)操作成功或者失败;
-   业务系统完成操作之后检查日志系统失败个数,存在失败进行回滚;
-```
+    采用log日志(transaction-log)来记录业务系统(account,order,goods)操作成功或者失败;
+    业务系统完成操作之后检查日志系统失败个数,存在失败进行回滚;
+  ```
 
 
 ### 业务场景：扣款(account)->创建订单(order)->减少库存(goods)
@@ -34,7 +34,10 @@
                         transactionLogService.addTransactionLog(transactionLog);
      ```
 * 2 .业务系统操作(账户,订单,库存)
-     操作简介：dubbo+zk实现rpc远程服务调用,分四部分：
+     ```
+          操作简介：
+          实现代码简介1.0的实现思路,后续优化中有所改动,但大致思路没怎么变化);
+     ```
      ```
         注:--修改失败次数:(prepare_count=0,failed_count=1)
            --减少准备操作次数:(prepare_count-1)
@@ -266,22 +269,24 @@
 ### 存在问题：
 
        2019-4-18: 接口访问过慢,如1000并发,需要1分钟以上(每个创建订单100ms左右吧,没有具体测试)
-       2019-4-19：每个模块配置了redis代码,能否写在公共模块(如何放在公共模块web加载不了bean,goods等服务提供模块没问题)
+       未解决.
+       2019-4-19：每个模块配置了redis代码,能否写在公共模块(如何放在公共模块,web加载不了bean,goods等服务提供模块没问题)
+       解决:web添加注解,指定扫描的包,@ComponentScan(basePackages = {"com.transaction.web", "com.transaction.common.redis"})
 
-* [csdn博客:](https://blog.csdn.net/qq_37751454/article/details/89265134)
+* [→ csdn博客链接 ←](https://blog.csdn.net/qq_37751454/article/details/89265134)
 
 ```
 |—transaction-xxx (账户,商品,订单)
 |  |
 |  |-dao
 |  |-impl
-|  |-redis 缓存操作(商品)
 |  |-README.md
 |
 |—transaction-common 公共模块
 |  |
 |  |-entity  实体类
-|  |-service api接口
+|  |-redis   缓存操作
+|  |-service Api接口
 |  |-util    公共类
 |  |-README.md
 |
@@ -296,7 +301,6 @@
 |  |-entity 类
 |  |-rabbit rabbit操作
 |  |-redis  redis操作
-|  |-test   rest类
 |  |-xxxController.java
 |  |-README.md
 |

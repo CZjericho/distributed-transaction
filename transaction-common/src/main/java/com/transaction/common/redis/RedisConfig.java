@@ -1,4 +1,4 @@
-package com.transaction.goods.redis;
+package com.transaction.common.redis;
 
 /**
  * Created by xhga on 2019/4/19.

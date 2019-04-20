@@ -3,8 +3,8 @@ package com.transaction.web;
 import com.alibaba.fastjson.JSONObject;
 import com.transaction.web.entity.CreateOrderRequest;
 import com.transaction.web.rabbit.RabbitSend;
-import com.transaction.web.redis.RedisApi;
-import com.transaction.web.redis.RedisConfig;
+import com.transaction.common.redis.RedisApi;
+import com.transaction.common.redis.RedisConfig;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,6 @@ import java.util.concurrent.CountDownLatch;
  */
 @RestController
 @RequestMapping("/redis")
-@Service
 public class RedisController {
     @Autowired
     private RabbitSend rabbitSend;

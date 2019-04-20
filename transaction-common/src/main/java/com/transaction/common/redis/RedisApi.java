@@ -1,4 +1,4 @@
-package com.transaction.goods.redis;
+package com.transaction.common.redis;
 
 import java.util.List;
 
