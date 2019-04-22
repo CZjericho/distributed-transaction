@@ -106,6 +106,7 @@ public class GoodsServiceImpl implements GoodsService{
         if (result == 0) {
             System.out.println(centreNo + "--Safe--库存不足;");
             transactionLogService.updateFailedCount(centreNo);
+            // 若不使用redis,请把这行注释掉
             redisApi.increase(RedisConfig.GOODS_COUNT + id, count);
             throw new RuntimeException();
         }
@@ -115,6 +116,7 @@ public class GoodsServiceImpl implements GoodsService{
         } catch (RuntimeException e) {
             System.out.println(centreNo + "--Safe--操作失败;");
             transactionLogService.updateFailedCount(centreNo);
+            // 若不使用redis,请把这行注释掉
             redisApi.increase(RedisConfig.GOODS_COUNT + id, count);
             throw new RuntimeException();
         }

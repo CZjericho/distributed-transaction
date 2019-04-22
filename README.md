@@ -252,6 +252,11 @@
            rabbitSend.sendMessage(jsonString);
            return "有点开心..";
        }
+   2.业务系统操作：(库存)
+   
+        和实现代码简介2.0(mq实现并发访问接口),业务系统操作:(库存)代码一样,
+        只不过在失败时候将库存重新加入redis.
+        代码:redisApi.increase(RedisConfig.GOODS_COUNT + id, count);
   
 ### Api说明：
 
@@ -269,9 +274,9 @@
 ### 存在问题：
 
        2019-4-18: 接口访问过慢,如1000并发,需要1分钟以上(每个创建订单100ms左右吧,没有具体测试)
-       未解决.
+       未解决？？？
        2019-4-19：每个模块配置了redis代码,能否写在公共模块(如何放在公共模块,web加载不了bean,goods等服务提供模块没问题)
-       解决:web添加注解,指定扫描的包,@ComponentScan(basePackages = {"com.transaction.web", "com.transaction.common.redis"})
+       已解决:web添加注解,扫描包,@ComponentScan(basePackages = {"com.transaction.web", "com.transaction.common.redis"})
 
 * [→ csdn博客链接 ←](https://blog.csdn.net/qq_37751454/article/details/89265134)
 
@@ -300,7 +305,7 @@
 |  |
 |  |-entity 类
 |  |-rabbit rabbit操作
-|  |-redis  redis操作
+|  |-test   测试类
 |  |-xxxController.java
 |  |-README.md
 |
