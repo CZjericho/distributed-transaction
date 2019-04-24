@@ -29,5 +29,15 @@ public interface GoodsService {
      */
     int updateCountSafe(int id, int count, String centreNo);
 
+
+    /**
+     * 编程式事务
+     * @param id
+     * @param count
+     * @param centreNo
+     * @return
+     */
+    int updateCountSafeProgramme(int id, int count, String centreNo);
+
     Goods getGoods(int id);
 }

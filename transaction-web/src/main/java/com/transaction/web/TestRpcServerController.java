@@ -35,6 +35,17 @@ public class TestRpcServerController {
     @Autowired
     private TransactionLogService transactionLogService;
 
+    /**
+     * 测试 编程式事务
+     * @return
+     */
+    @RequestMapping("/testSafeProgramme")
+    @ResponseBody
+    public String testSafeProgramme(){
+        int i = goodsService.updateCountSafeProgramme(1, 1, "");
+        return i == 0?"no":"ok";
+    }
+
     /*-----------------------------别看了,有鬼----------------------------*/
     /**
      * 测试rpc服务

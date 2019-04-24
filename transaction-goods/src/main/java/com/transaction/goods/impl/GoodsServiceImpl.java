@@ -8,7 +8,12 @@ import com.transaction.common.redis.RedisApi;
 import com.transaction.common.redis.RedisConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Created by HuaWeiBo on 2019/4/4.
@@ -24,6 +29,12 @@ public class GoodsServiceImpl implements GoodsService{
 
     @Autowired
     private RedisApi redisApi;
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
+
+    @Autowired
+    PlatformTransactionManager transactionManager;
 
     /**
      * 更新库存
@@ -121,6 +132,24 @@ public class GoodsServiceImpl implements GoodsService{
             throw new RuntimeException();
         }
         System.out.println(centreNo + "--Safe--操作成功end.");
+        return result;
+    }
+
+    @Override
+    public int updateCountSafeProgramme(int id, int count, String centreNo) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus transactionStatus = transactionManager.getTransaction(def);
+
+        System.out.println(centreNo + "--SafeProgramme--goods-begin:");
+        int result = goodsMapper.reduceCount(id, count);
+        if (result == 0) {
+            System.out.println(centreNo + "--SafeProgramme--库存不足;");
+            // 实际上并没有减少库存
+            transactionManager.rollback(transactionStatus);
+            return result;
+        }
+        transactionManager.commit(transactionStatus);
+        System.out.println(centreNo + "--SafeProgramme--操作成功end.");
         return result;
     }
 
