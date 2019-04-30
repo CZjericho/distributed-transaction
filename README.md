@@ -277,10 +277,18 @@
        未解决？？？
        2019-4-19：每个模块配置了redis代码,能否写在公共模块(如何放在公共模块,web加载不了bean,goods等服务提供模块没问题)
        已解决:web添加注解,扫描包,@ComponentScan(basePackages = {"com.transaction.web", "com.transaction.common.redis"})
+       
+### 集成:
+        以上面的实现步骤,做了集成,通过简单的配置只需要对service方法添加@XHGATransaction注解即可实现.
+* [集成地址](https://gitee.com/luckhwb/transaction-xhga)
+         
+          
 
 * [→ csdn博客链接 ←](https://blog.csdn.net/qq_37751454/article/details/89265134)
+       
+### 结构:    
 
-```
+```我本身还很菜,希望与大牛一起讨论此项目中出现的问题,一起解决！
 |—transaction-xxx (账户,商品,订单)
 |  |
 |  |-dao
